@@ -261,7 +261,7 @@ async def db_insert(query, tupl):
 async def db_repl_log(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #await ssh_execute(update, context, 'cat /var/log/postgresql/postgresql.log | grep "repl_user" | grep -F "$(date +%Y-%m-%d)"', "Логи за последние сутки")
     try:
-        res = subprocess.run(['bash', '-c', 'cat /var/log/postgresql/postgresql-14-main.log tail -12  | grep -F "$(date +%Y-%m-%d)"'], capture_output=True, text=True)
+        res = subprocess.run(['bash', '-c', 'cat /var/log/postgresql/postgresql-14-main.log | tail -12  | grep -F "$(date +%Y-%m-%d)"'], capture_output=True, text=True)
         log = res.stdout
         if res.stdout:
             await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Логи за последние сутки: {log}")
