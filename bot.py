@@ -13,8 +13,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
-# больше не нужно
-#dotenv.load_dotenv()
+dotenv.load_dotenv()
 
 token = os.getenv('TOKEN')
 ssh_host = os.getenv('RM_HOST')
@@ -35,7 +34,6 @@ def ssh_connect(host, port, user, passd):
     return ssh_client
 
 ssh_client = ssh_connect(ssh_host, ssh_port, ssh_user, ssh_pass)
-ssh_logs = ssh_connect(os.getenv('DB_REPL_HOST'), ssh_port, ssh_user, ssh_pass)
 
 EMAIL, PHONE, PASSWD, APT_CHOICE, ASK_WRITE, WRITE_TO_DB = range(6)
 
@@ -129,7 +127,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Отмена.")
     return ConversationHandler.END
 
-async def ssh_execute(update: Update, context: ContextTypes.DEFAULT_TYPE, command, message, ssh_client=ssh_client):
+async def ssh_execute(update: Update, context: ContextTypes.DEFAULT_TYPE, command, message):
     stdin, stdout, stderr = ssh_client.exec_command(command)
     data = stdout.read() + stderr.read()
     data = data.decode("utf-8")
@@ -263,7 +261,12 @@ async def db_insert(query, tupl):
 async def db_repl_log(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #await ssh_execute(update, context, 'cat /var/log/postgresql/postgresql.log | grep "repl_user" | grep -F "$(date +%Y-%m-%d)"', "Логи за последние сутки")
     try:
-        await ssh_execute(update, context, 'cat /var/log/postgresql/postgresql.log | grep "repl_user" | grep -F "$(date +%Y-%m-%d)"', "Логи за последние сутки", ssh_client=ssh_logs)
+        res = subprocess.run(['bash', '-c', 'cat /var/log/postgresql/postgresql.log | grep "repl" | tail -10  | grep -F "$(date +%Y-%m-%d)"'], capture_output=True, text=True)
+        log = res.stdout
+        if res.stdout:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Логи за последние сутки: {log}")
+        else:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Логи отсутствуют!")
     except Exception as e:
         await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Произошла ошибка: {e}")
 
