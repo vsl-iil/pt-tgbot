@@ -13,7 +13,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
-dotenv.load_dotenv()
+# больше не нужно
+#dotenv.load_dotenv()
 
 token = os.getenv('TOKEN')
 ssh_host = os.getenv('RM_HOST')
